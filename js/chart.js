@@ -1,6 +1,5 @@
 require([
-    'jquery', 'googleCharts', 'values'], function()
-{
+    'jquery', 'googleCharts', 'values'], () => {
 
   google.charts.load('current', {packages: ['corechart', 'line']});
   google.charts.setOnLoadCallback(drawBasic);
@@ -13,17 +12,6 @@ require([
     values.quotes.cols.forEach( (column) => {
     data.addColumn(column.type, column.label);
     });
-
-    // TODO find specific date in values
-
-    // latest : put this somewhere else
-    function getLatest(){
-      let latest = data.quotes.rows[ Object.keys(data.quotes.rows).sort().pop() ];
-      let date = new Date(1000 * latest.c[0].v);
-      let value = latest.c[1].v;
-      return {date: date, value: value};
-    }
-
 
     // set up rows (insert data)
     for (key in values.quotes.rows) {
@@ -71,7 +59,8 @@ require([
     };
 
     var chart = new google.visualization.LineChart(document.getElementById('chart_div'));
-
+    // example set selection
+    setTimeout(function(){chart.setSelection([{row:480, column:1}])}, 5000);
     chart.draw(data, options);
   }
 

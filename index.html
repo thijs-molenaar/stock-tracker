@@ -31,7 +31,7 @@
     </div>
 
     <script type="text/javascript">
-      require(["chart"], function(chart){
+      require(["chart"], (chart) => {
 
         // TODO: chart to module
         // TODO: fix values properly for use with requireJS
@@ -48,6 +48,14 @@
         }
 
         $("document").ready( () => {
+
+          $.get('http://localhost:5000/api/update-values')
+            .done( (res) => {
+              console.log(res);
+            })
+            .fail( (res) => {
+              console.error("Error updating stock information.");
+            })
 
           // TODO: proper date format
           let currentValue = getCurrentValue();
