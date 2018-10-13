@@ -1,5 +1,5 @@
 require([
-    'googleCharts', 'values'], function()
+    'jquery', 'googleCharts', 'values'], function()
 {
 
   google.charts.load('current', {packages: ['corechart', 'line']});

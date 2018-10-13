@@ -3,24 +3,102 @@
     <script src="js/require-2.3.6.min.js"></script>
     <script src="js/require.config.js"></script>
     <link rel="stylesheet" href="css/bootstrap.css">
+    <link rel="stylesheet" href="css/bootstrap-datepicker.standalone.css">
   </head>
 
   <body>
 
     <div class="container">
       <div class="row">
-        <div class="col-lg">
+        <div class="col-xl-12">
           <h2>Overzicht van koers</h2>
           <div id="chart_div"></div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-xl-12">
+          <p>Prijs op <span id="lastRetrievedDate"></span> <span id="lastRetrievedPrice"><span></p>
+        </div>
+        <div class="col-xl-12">
+          <label for="purchaseDate">Aankoopdatum:</label>
+          <input id="purchaseDate" name="purchaseDate" type="text" class="form-control">
+        </div>
+        <div class="col-xl-12">
+          <p>Prijs op Aankoopdatum: <span id="priceAtSelectedDate"><span></p>
+          <p>Return: <span id="currentReturn"><span></p>
         </div>
       </div>
     </div>
 
     <script type="text/javascript">
-      require(["jquery", "chart"], function($, chart){
+      require(["chart"], function(chart){
+
+        // TODO: chart to module
+        // TODO: fix values properly for use with requireJS
+      });
+
+      require(["jquery", "bootstrap-datepicker", "values"], function($, datepicker){
+
+        let getCurrentValue = () => {
+          let lastValueRetrieved = values.quotes.rows[Object.keys(values.quotes.rows)[Object.keys(values.quotes.rows).length - 1]];
+          return {
+            date: new Date(lastValueRetrieved.c[0].v * 1000),
+            value: lastValueRetrieved.c[1].v
+          }
+        }
 
         $("document").ready( () => {
-          console.log("a");
+
+          // TODO: proper date format
+          let currentValue = getCurrentValue();
+          $("#lastRetrievedDate").text(currentValue.date.getDate() + "/" + currentValue.date.getMonth() + "/" + currentValue.date.getFullYear() + ": ");
+          $("#lastRetrievedPrice").text(currentValue.value);
+
+          $("#purchaseDate").datepicker({
+              format: 'dd/mm/yyyy',
+              autoclose: true,
+              defaultViewDate: "today",
+          });
+
+          $("#purchaseDate").datepicker()
+              .on("hide", function(e) {
+                // TODO: move to function
+                  let selectedDate = $("#purchaseDate").datepicker("getDate");
+
+                  // selectedDate is always at 00:00
+                  // add two hours since dates in values are at 02:00
+                  selectedDate.setHours(selectedDate.getHours() + 2);
+
+                  // find in values array, error on not found (note sat + sun)
+                  let selectedDateInSeconds = selectedDate.getTime() / 1000;
+                  let retrievedData = values.quotes.rows[selectedDateInSeconds];
+                  let retrievedPrice;
+                  if (typeof(retrievedData) !== "undefined")
+                  {
+                    retrievedPrice = parseFloat(retrievedData.c[1].v)
+                    $("#priceAtSelectedDate").text(retrievedPrice);
+
+                    // set current return
+                    let currentValue = getCurrentValue();
+
+                    let roi = currentValue.value / retrievedPrice;
+                    if (roi === 1) {
+                      // even
+                    } else if (roi > 1) {
+                      // profit
+                      let profitInPercentages = parseFloat((1 - currentValue.value / retrievedPrice) * 100).toFixed(2);
+                      $("#currentReturn").css("color", "green");
+                      $("#currentReturn").text("+" + profitInPercentages + "%");
+                    }
+                    else {
+                      // loss
+                      let lossInPercentages = parseFloat((1 - currentValue.value / retrievedPrice) * 100).toFixed(2);
+                      $("#currentReturn").css("color", "red");
+                      $("#currentReturn").text("-" + lossInPercentages + "%");
+                    }
+                  }
+              });
+
         });
 
       });
